@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# tic-tac-toe optimal solver implementation from http://cwoebker.com/posts/tic-tac-toe
+
 
 import random
 
@@ -16,6 +18,9 @@ class Tic(object):
             self.squares = [None for i in range(9)]
         else:
             self.squares = squares
+
+    def getBoard(self):
+        return self.squares
 
     def show(self):
         for element in [self.squares[i:i + 3] for i in range(0, len(self.squares), 3)]:
@@ -103,7 +108,7 @@ def determine(board, player):
         board.make_move(move, player)
         val = board.alphabeta(board, get_enemy(player), -2, 2)
         board.make_move(move, None)
-        print "move:", move + 1, "causes:", board.winners[val + 1]
+        #print "move:", move + 1, "causes:", board.winners[val + 1]
         if val > a:
             a = val
             choices = [move]
@@ -117,23 +122,34 @@ def get_enemy(player):
         return 'O'
     return 'X'
 
+
+
+
 if __name__ == "__main__":
-    board = Tic()
-    board.show()
-
-    while not board.complete():
-        player = 'X'
-        player_move = int(raw_input("Next Move: ")) - 1
-        if not player_move in board.available_moves():
-            continue
-        board.make_move(player_move, player)
+    configs = []
+    decisions = []
+    for i in range(100):
+        board = Tic()
         board.show()
+        #print board.getBoard()
 
-        if board.complete():
-            break
-        player = get_enemy(player)
-        computer_move = determine(board, player)
-        board.make_move(computer_move, player)
-        board.show()
-    print "winner is", board.winner()
+        while not board.complete():
+            player = 'X'
+            #player_move = int(raw_input("Next Move: ")) - 1
+            player_move = random.randint(0,8)
+            if not player_move in board.available_moves():
+                continue
+            board.make_move(player_move, player)
+            board.show()
 
+            if board.complete():
+                break
+            player = get_enemy(player)
+            configs.append(board.getBoard())
+            computer_move = determine(board, player)
+            decisions.append(computer_move)
+            board.make_move(computer_move, player)
+            board.show()
+        print "winner is", board.winner()
+        
+    print len(configs)

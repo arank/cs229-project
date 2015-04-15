@@ -153,3 +153,17 @@ if __name__ == "__main__":
         print "winner is", board.winner()
         
     print len(configs)
+
+
+def to_feature_vector(board):
+    vec = []
+    for move in board.squares:
+        if move is None:
+            vec.append(0)
+        elif move == 'X':
+            vec.append(1)
+        elif move == 'O':
+            vec.append(2)
+            
+    return vec
+

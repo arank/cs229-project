@@ -3,6 +3,11 @@
 
 
 import random
+from pybrain.datasets            import ClassificationDataSet
+from pybrain.utilities           import percentError
+from pybrain.tools.shortcuts     import buildNetwork
+from pybrain.supervised.trainers import BackpropTrainer
+from pybrain.structure.modules   import SoftmaxLayer
 
 
 class Tic(object):
@@ -20,8 +25,15 @@ class Tic(object):
             self.squares = squares
 
     def getBoard(self):
-        return self.squares
-
+        newboard = []
+        for x in self.squares:
+            if x == 'X':
+                newboard.append(1)
+            elif x == 'O':
+                newboard.append(-1)
+            else:
+                newboard.append(0)
+        return newboard
     def show(self):
         for element in [self.squares[i:i + 3] for i in range(0, len(self.squares), 3)]:
             print element
@@ -130,7 +142,7 @@ if __name__ == "__main__":
     decisions = []
     for i in range(100):
         board = Tic()
-        board.show()
+        #board.show()
         #print board.getBoard()
 
         while not board.complete():
@@ -140,16 +152,43 @@ if __name__ == "__main__":
             if not player_move in board.available_moves():
                 continue
             board.make_move(player_move, player)
-            board.show()
+            #board.show()
 
             if board.complete():
                 break
             player = get_enemy(player)
             configs.append(board.getBoard())
+
             computer_move = determine(board, player)
             decisions.append(computer_move)
             board.make_move(computer_move, player)
-            board.show()
+            #board.show()
         print "winner is", board.winner()
         
     print len(configs)
+
+
+
+    dataset = ClassificationDataSet(9)
+    for i in range(len(configs)):
+        dataset.appendLinked(configs[i], [decisions[i]])
+    dataset._convertToOneOfMany()
+
+
+    fnn = buildNetwork(9, 5, 9, outclass=SoftmaxLayer)
+    trainer = BackpropTrainer( fnn, dataset=dataset, momentum=0.1, verbose=True, weightdecay=0.01)
+    for i in range(20):
+        trainer.trainEpochs(1)
+
+
+
+
+
+
+
+
+
+
+
+
+

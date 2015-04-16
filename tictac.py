@@ -169,6 +169,7 @@ if __name__ == "__main__":
 
 
 
+
     dataset = ClassificationDataSet(9)
     for i in range(len(configs)):
         dataset.appendLinked(configs[i], [decisions[i]])
@@ -190,5 +191,18 @@ if __name__ == "__main__":
 
 
 
+
+
+def to_feature_vector(board):
+    vec = []
+    for move in board.squares:
+        if move is None:
+            vec.append(0)
+        elif move == 'X':
+            vec.append(1)
+        elif move == 'O':
+            vec.append(2)
+            
+    return vec
 
 

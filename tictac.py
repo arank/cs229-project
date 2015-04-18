@@ -126,6 +126,7 @@ def determine(board, player):
             choices = [move]
         elif val == a:
             choices.append(move)
+    #print choices
     return random.choice(choices)
 
 
@@ -134,13 +135,36 @@ def get_enemy(player):
         return 'O'
     return 'X'
 
+def to_feature_vector(board):
+    vec = []
+    for move in board.squares:
+        if move is None:
+            vec.append(0)
+        elif move == 'X':
+            vec.append(1)
+        elif move == 'O':
+            vec.append(2)
+            
+    return vec
+
+def from_feature_vector(moves):
+    vec = []
+    for move in moves:
+        if move == 0:
+            vec.append(None)
+        elif move == 1:
+            vec.append('X')
+        elif move == -1:
+            vec.append('O')
+            
+    return vec
 
 
 
 if __name__ == "__main__":
     configs = []
     decisions = []
-    for i in range(100):
+    for i in range(1000):
         board = Tic()
         #board.show()
         #print board.getBoard()
@@ -176,10 +200,30 @@ if __name__ == "__main__":
     dataset._convertToOneOfMany()
 
 
-    fnn = buildNetwork(9, 5, 9, outclass=SoftmaxLayer)
+    fnn = buildNetwork(9, 9, 9, outclass=SoftmaxLayer)
     trainer = BackpropTrainer( fnn, dataset=dataset, momentum=0.1, verbose=True, weightdecay=0.01)
-    for i in range(20):
+    for i in range(100):
         trainer.trainEpochs(1)
+
+    prediction_moves = trainer.testOnClassData()
+    #print prediction_moves
+    computer_moves = []
+
+    #print "Now for the computer moves"
+    print "Determining the predicted moved and the computer's moves..."
+    for config in configs:
+        config = from_feature_vector(config)
+        board = Tic(squares = config)
+        #print "Board is: "
+        player = 'O'
+        #board.show()
+        computer_move = determine(board, player)
+        computer_moves.append(computer_move)
+        #print "Computer move"
+        #print computer_move
+
+    print prediction_moves
+    print computer_moves
 
 
 

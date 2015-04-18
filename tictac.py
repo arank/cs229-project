@@ -164,7 +164,7 @@ def from_feature_vector(moves):
 if __name__ == "__main__":
     configs = []
     decisions = []
-    for i in range(1000):
+    for i in range(100):
         board = Tic()
         #board.show()
         #print board.getBoard()
@@ -172,7 +172,9 @@ if __name__ == "__main__":
         while not board.complete():
             player = 'X'
             #player_move = int(raw_input("Next Move: ")) - 1
-            player_move = random.randint(0,8)
+            #player_move = random.randint(0,8)
+            player_move = determine(board, player)
+            #print player_move
             if not player_move in board.available_moves():
                 continue
             board.make_move(player_move, player)
@@ -184,19 +186,24 @@ if __name__ == "__main__":
             configs.append(board.getBoard())
 
             computer_move = determine(board, player)
+            #print computer_move
             decisions.append(computer_move)
+
             board.make_move(computer_move, player)
             #board.show()
         print "winner is", board.winner()
         
     print len(configs)
+    print decisions
 
 
 
 
-    dataset = ClassificationDataSet(9)
+    dataset = ClassificationDataSet(9, nb_classes=9)
+    #print dataset
     for i in range(len(configs)):
         dataset.appendLinked(configs[i], [decisions[i]])
+    #print dataset
     dataset._convertToOneOfMany()
 
 
@@ -210,7 +217,7 @@ if __name__ == "__main__":
     computer_moves = []
 
     #print "Now for the computer moves"
-    print "Determining the predicted moved and the computer's moves..."
+    print "Determining the predicted moves and the computer's moves..."
     for config in configs:
         config = from_feature_vector(config)
         board = Tic(squares = config)

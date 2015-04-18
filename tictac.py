@@ -164,7 +164,7 @@ def from_feature_vector(moves):
 if __name__ == "__main__":
     configs = []
     decisions = []
-    for i in range(100):
+    for i in range(1000):
         board = Tic()
         #board.show()
         #print board.getBoard()
@@ -231,29 +231,9 @@ if __name__ == "__main__":
 
     print prediction_moves
     print computer_moves
+    print "Number of differences: ", percentError(prediction_moves, computer_moves)
 
 
 
-
-
-
-
-
-
-
-
-
-
-def to_feature_vector(board):
-    vec = []
-    for move in board.squares:
-        if move is None:
-            vec.append(0)
-        elif move == 'X':
-            vec.append(1)
-        elif move == 'O':
-            vec.append(2)
-            
-    return vec
 
 

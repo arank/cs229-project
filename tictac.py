@@ -13,6 +13,12 @@ import cPickle as pickle
 numGamesForTraining = 1000
 numEpochsForTraining = 100
 
+# if usePriorNetwork = False, then the newly trained network will be saved in fileNameForNetworkSavingLoading
+# if usePriorNetwor = True, then the network will be loaded from fileNameForNetworkSavingLoading
+usePriorNetwork = True
+fileNameForNetworkSavingLoading = "trainednetwork"
+
+
 class Tic(object):
     winning_combos = (
         [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -169,10 +175,9 @@ if __name__ == "__main__":
     decisions = []
 
     fnn = buildNetwork(9, 9, 9, outclass=SoftmaxLayer)
-    usePriorNetwork = True
 
     if (usePriorNetwork):
-        fileObject = open('trainednetwork','r')
+        fileObject = open(fileNameForNetworkSavingLoading,'r')
         fnn = pickle.load(fileObject)
 
     else:
@@ -225,7 +230,7 @@ if __name__ == "__main__":
             trainer.trainEpochs(1)
         prediction_moves = trainer.testOnClassData()
 
-        fileObject = open('trainednetwork', 'w')
+        fileObject = open(fileNameForNetworkSavingLoading, 'w')
         pickle.dump(fnn, fileObject)
         fileObject.close()
 

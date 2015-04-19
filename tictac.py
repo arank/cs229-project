@@ -173,63 +173,66 @@ def from_feature_vector(moves):
 if __name__ == "__main__":
     configs = []
     decisions = []
-
+    
+    # create a Feed-Forward Neural Network
     fnn = buildNetwork(9, 9, 9, outclass=SoftmaxLayer)
 
+    # Load the Network from Memory if desired
     if (usePriorNetwork):
         fileObject = open(fileNameForNetworkSavingLoading,'r')
         fnn = pickle.load(fileObject)
 
+    # If not loading from memory, train the network
     else:
+        
+        # loop over all of the games
         for i in range(numGamesForTraining):
+            # initialize a new game
             board = Tic()
-            #board.show()
-            #print board.getBoard()
-
+            
+            # loop until the game is complete
             while not board.complete():
                 player = 'X'
-                #player_move = int(raw_input("Next Move: ")) - 1
-                #player_move = random.randint(0,8)
+                
+                # add the board configuration and resultant best-move to the training set
                 configs.append(board.getBoard())
                 player_move = determine(board, player)
                 decisions.append(player_move)
-
-                #print player_move
+                
+                # makes sure the player move is valid
                 if not player_move in board.available_moves():
                     continue
                 board.make_move(player_move, player)
-                #board.show()
 
                 if board.complete():
                     break
+                
+                # switch to the other player
                 player = get_enemy(player)
-                configs.append(board.getBoard())
 
+                # add the board configuation and resultant best-move to the training set
+                configs.append(board.getBoard())
                 computer_move = determine(board, player)
-                #print computer_move
                 decisions.append(computer_move)
 
                 board.make_move(computer_move, player)
-                #board.show()
+            
             print "winner is", board.winner()
             
-
-
-
-
-
+        # create a classification dataset from the input values
         dataset = ClassificationDataSet(9, nb_classes=9)
         for i in range(len(configs)):
             dataset.appendLinked(configs[i], [decisions[i]])
         dataset._convertToOneOfMany()
 
-
-
+        # use backpropogation to train the neural network
         trainer = BackpropTrainer( fnn, dataset=dataset, momentum=0.1, verbose=True, weightdecay=0.01)
         for i in range(numEpochsForTraining):
             trainer.trainEpochs(1)
+        # print predictions on the training data- not actually used for anything
         prediction_moves = trainer.testOnClassData()
 
+        # save the network to the specified file to save time later if not retraining
         fileObject = open(fileNameForNetworkSavingLoading, 'w')
         pickle.dump(fnn, fileObject)
         fileObject.close()
@@ -237,6 +240,7 @@ if __name__ == "__main__":
     computer_moves = []
 
 
+    # this loop is just for testing purposes - just to see how different the learned network generally behaves
     print "Determining the predicted moves and the computer's moves..."
     for config in configs:
         config = from_feature_vector(config)
@@ -247,34 +251,36 @@ if __name__ == "__main__":
         computer_move = determine(board, player)
         computer_moves.append(computer_move)
 
-
-    #print prediction_moves
-    print computer_moves
-    #print "Number of differences: ", percentError(prediction_moves, computer_moves)
-
     configs = []
     decisions = []
     
-
+    # In this stage, we play the ideal solver against the learned neural network, and count the number of draws, wins and losses
+    # note, it is not possible to win against the computer - so really we are trying to find the number of draws
     winners = []
     numGames = 100
     for i in range(numGames):
         board = Tic()
-
+        
+        # play until someone wins the game
         while not board.complete():
             player = 'X'
-            datasettmp = ClassificationDataSet(9, nb_classes=9)
-            datasettmp.appendLinked(board.getBoard(), [0])
-            #player_move = trainer.testOnClassData(dataset=datasettmp)[0]
+            #datasettmp = ClassificationDataSet(9, nb_classes=9)
+            #datasettmp.appendLinked(board.getBoard(), [0])
+            
+            # get the activations for a given board state
             activation = fnn.activate(board.getBoard())
             activation = np.array(activation)
+
+            # argsort activations from greatest to least
             order_of_attempts = np.argsort((-1)*activation)
             attempt = 0
-
+            
+            # keep picking moves from highest to least activation until an available one is found
             player_move = order_of_attempts[attempt]
             while player_move not in board.available_moves():
                 attempt += 1
                 player_move = order_of_attempts[attempt]
+
             print player_move
 
             board.make_move(player_move, player)
@@ -282,6 +288,8 @@ if __name__ == "__main__":
 
             if board.complete():
                 break
+            
+            # let the computer make its move
             player = get_enemy(player)
             configs.append(board.getBoard())
 
@@ -294,13 +302,14 @@ if __name__ == "__main__":
         print "winner is", board.winner()
         winners.append(board.winner())
     
+    # calculate the number of wins for each
     Xwins = [win for win in winners if win == 'X']
     numXwins = len(Xwins)
     Owins = [win for win in winners if win == 'O']
     numOwins = len(Owins)
 
-    print "Number of times X won is ", numXwins, " out of ", numGames
-    print "Number of times O won is ", numOwins, " out of ", numGames
+    print "Number of times Neural Net won is ", numXwins, " out of ", numGames
+    print "Number of times Optimal Solver won is ", numOwins, " out of ", numGames
     print "Number of Draws is ", numGames - numXwins - numOwins, " out of ", numGames
 
 

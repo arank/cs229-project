@@ -15,9 +15,12 @@ numEpochsForTraining = 100
 
 # if usePriorNetwork = False, then the newly trained network will be saved in fileNameForNetworkSavingLoading
 # if usePriorNetwor = True, then the network will be loaded from fileNameForNetworkSavingLoading
-usePriorNetwork = True
-fileNameForNetworkSavingLoading = "trainednetwork"
+usePriorNetwork = False
+fileNameForNetworkSavingLoading = "trainednetwork_9_9_9"
 
+# specify the setup of neurons per layer, and other arguments for the neural network
+layers = (9,9,9)
+args = {'outclass': SoftmaxLayer}
 
 class Tic(object):
     winning_combos = (
@@ -175,7 +178,7 @@ if __name__ == "__main__":
     decisions = []
     
     # create a Feed-Forward Neural Network
-    fnn = buildNetwork(9, 9, 9, outclass=SoftmaxLayer)
+    fnn = buildNetwork(*layers, **args)
 
     # Load the Network from Memory if desired
     if (usePriorNetwork):

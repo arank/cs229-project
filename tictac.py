@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # tic-tac-toe optimal solver implementation from http://cwoebker.com/posts/tic-tac-toe
 
-
+import numpy as np
 import random
 from pybrain.datasets            import ClassificationDataSet
 from pybrain.utilities           import percentError
 from pybrain.tools.shortcuts     import buildNetwork
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure.modules   import SoftmaxLayer
+import cPickle as pickle
 
+numGamesForTraining = 1000
+numEpochsForTraining = 100
 
 class Tic(object):
     winning_combos = (
@@ -164,19 +167,111 @@ def from_feature_vector(moves):
 if __name__ == "__main__":
     configs = []
     decisions = []
-    for i in range(1000):
+
+    fnn = buildNetwork(9, 9, 9, outclass=SoftmaxLayer)
+    usePriorNetwork = True
+
+    if (usePriorNetwork):
+        fileObject = open('trainednetwork','r')
+        fnn = pickle.load(fileObject)
+
+    else:
+        for i in range(numGamesForTraining):
+            board = Tic()
+            #board.show()
+            #print board.getBoard()
+
+            while not board.complete():
+                player = 'X'
+                #player_move = int(raw_input("Next Move: ")) - 1
+                #player_move = random.randint(0,8)
+                configs.append(board.getBoard())
+                player_move = determine(board, player)
+                decisions.append(player_move)
+
+                #print player_move
+                if not player_move in board.available_moves():
+                    continue
+                board.make_move(player_move, player)
+                #board.show()
+
+                if board.complete():
+                    break
+                player = get_enemy(player)
+                configs.append(board.getBoard())
+
+                computer_move = determine(board, player)
+                #print computer_move
+                decisions.append(computer_move)
+
+                board.make_move(computer_move, player)
+                #board.show()
+            print "winner is", board.winner()
+            
+
+
+
+
+
+        dataset = ClassificationDataSet(9, nb_classes=9)
+        for i in range(len(configs)):
+            dataset.appendLinked(configs[i], [decisions[i]])
+        dataset._convertToOneOfMany()
+
+
+
+        trainer = BackpropTrainer( fnn, dataset=dataset, momentum=0.1, verbose=True, weightdecay=0.01)
+        for i in range(numEpochsForTraining):
+            trainer.trainEpochs(1)
+        prediction_moves = trainer.testOnClassData()
+
+        fileObject = open('trainednetwork', 'w')
+        pickle.dump(fnn, fileObject)
+        fileObject.close()
+
+    computer_moves = []
+
+
+    print "Determining the predicted moves and the computer's moves..."
+    for config in configs:
+        config = from_feature_vector(config)
+        board = Tic(squares = config)
+
+        player = 'O'
+
+        computer_move = determine(board, player)
+        computer_moves.append(computer_move)
+
+
+    #print prediction_moves
+    print computer_moves
+    #print "Number of differences: ", percentError(prediction_moves, computer_moves)
+
+    configs = []
+    decisions = []
+    
+
+    winners = []
+    numGames = 100
+    for i in range(numGames):
         board = Tic()
-        #board.show()
-        #print board.getBoard()
 
         while not board.complete():
             player = 'X'
-            #player_move = int(raw_input("Next Move: ")) - 1
-            #player_move = random.randint(0,8)
-            player_move = determine(board, player)
-            #print player_move
-            if not player_move in board.available_moves():
-                continue
+            datasettmp = ClassificationDataSet(9, nb_classes=9)
+            datasettmp.appendLinked(board.getBoard(), [0])
+            #player_move = trainer.testOnClassData(dataset=datasettmp)[0]
+            activation = fnn.activate(board.getBoard())
+            activation = np.array(activation)
+            order_of_attempts = np.argsort((-1)*activation)
+            attempt = 0
+
+            player_move = order_of_attempts[attempt]
+            while player_move not in board.available_moves():
+                attempt += 1
+                player_move = order_of_attempts[attempt]
+            print player_move
+
             board.make_move(player_move, player)
             #board.show()
 
@@ -186,53 +281,22 @@ if __name__ == "__main__":
             configs.append(board.getBoard())
 
             computer_move = determine(board, player)
-            #print computer_move
+
             decisions.append(computer_move)
 
             board.make_move(computer_move, player)
-            #board.show()
+
         print "winner is", board.winner()
-        
-    print len(configs)
-    print decisions
+        winners.append(board.winner())
+    
+    Xwins = [win for win in winners if win == 'X']
+    numXwins = len(Xwins)
+    Owins = [win for win in winners if win == 'O']
+    numOwins = len(Owins)
 
-
-
-
-    dataset = ClassificationDataSet(9, nb_classes=9)
-    #print dataset
-    for i in range(len(configs)):
-        dataset.appendLinked(configs[i], [decisions[i]])
-    #print dataset
-    dataset._convertToOneOfMany()
-
-
-    fnn = buildNetwork(9, 9, 9, outclass=SoftmaxLayer)
-    trainer = BackpropTrainer( fnn, dataset=dataset, momentum=0.1, verbose=True, weightdecay=0.01)
-    for i in range(100):
-        trainer.trainEpochs(1)
-
-    prediction_moves = trainer.testOnClassData()
-    #print prediction_moves
-    computer_moves = []
-
-    #print "Now for the computer moves"
-    print "Determining the predicted moves and the computer's moves..."
-    for config in configs:
-        config = from_feature_vector(config)
-        board = Tic(squares = config)
-        #print "Board is: "
-        player = 'O'
-        #board.show()
-        computer_move = determine(board, player)
-        computer_moves.append(computer_move)
-        #print "Computer move"
-        #print computer_move
-
-    print prediction_moves
-    print computer_moves
-    print "Number of differences: ", percentError(prediction_moves, computer_moves)
-
+    print "Number of times X won is ", numXwins, " out of ", numGames
+    print "Number of times O won is ", numOwins, " out of ", numGames
+    print "Number of Draws is ", numGames - numXwins - numOwins, " out of ", numGames
 
 
 

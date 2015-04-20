@@ -15,8 +15,8 @@ numEpochsForTraining = 100
 
 # if usePriorNetwork = False, then the newly trained network will be saved in fileNameForNetworkSavingLoading
 # if usePriorNetwor = True, then the network will be loaded from fileNameForNetworkSavingLoading
-usePriorNetwork = False
-fileNameForNetworkSavingLoading = "trainednetwork_9_9_9"
+usePriorNetwork = True
+fileNameForNetworkSavingLoading = "trainednetwork_9_9"
 
 # specify the setup of neurons per layer, and other arguments for the neural network
 layers = [9, 9]

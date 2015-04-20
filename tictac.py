@@ -19,7 +19,7 @@ usePriorNetwork = False
 fileNameForNetworkSavingLoading = "trainednetwork_9_9_9"
 
 # specify the setup of neurons per layer, and other arguments for the neural network
-layers = (9,9,9)
+layers = [9, 9]
 args = {'outclass': SoftmaxLayer}
 
 class Tic(object):

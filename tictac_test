@@ -371,7 +371,7 @@ p = Pool(multiprocessing.cpu_count())
 res = [p.apply_async( trainAndTest, t ) for t in tasks]
 draws = [r.get() for r in res]
 print draws
-print res
+#print res
 
 #p.map(trainNetwork, )
 #print createSimilarConfigurations([[9,10,5,9],[9,16,14,9],[9,3,9]], 10)

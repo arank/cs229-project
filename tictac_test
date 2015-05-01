@@ -8,19 +8,21 @@ from pybrain.utilities           import percentError
 from pybrain.tools.shortcuts     import buildNetwork
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure.modules   import SoftmaxLayer
+from pybrain.structure.modules   import TanhLayer
 import cPickle as pickle
 
 numGamesForTraining = 1000
-numEpochsForTraining = 100
+numEpochsForTraining = 5
 
 # if usePriorNetwork = False, then the newly trained network will be saved in fileNameForNetworkSavingLoading
 # if usePriorNetwor = True, then the network will be loaded from fileNameForNetworkSavingLoading
 usePriorNetwork = False
+usePriorDataset = True
 fileNameForNetworkSavingLoading = "trainednetwork_9_9"
-
+fileNameForDataSavingLoading = "input_dataset_1000games"
 # specify the setup of neurons per layer, and other arguments for the neural network
-layers = [9, 10, 9]
-args = {'outclass': SoftmaxLayer}
+inputlayers = [9, 30, 50, 30, 9]
+inputargs = {'outclass': SoftmaxLayer, 'hiddenclass': TanhLayer}
 
 class Tic(object):
     winning_combos = (
@@ -171,14 +173,13 @@ def from_feature_vector(moves):
             
     return vec
 
-
-
-if __name__ == "__main__":
+def trainNetwork(layers, args):
     configs = []
     decisions = []
     
     # create a Feed-Forward Neural Network
     fnn = buildNetwork(*layers, **args)
+
 
     # Load the Network from Memory if desired
     if (usePriorNetwork):
@@ -188,45 +189,54 @@ if __name__ == "__main__":
     # If not loading from memory, train the network
     else:
         
-        # loop over all of the games
-        for i in range(numGamesForTraining):
-            # initialize a new game
-            board = Tic()
-            
-            # loop until the game is complete
-            while not board.complete():
-                player = 'X'
+        if (usePriorDataset):
+            fileObjectData = open(fileNameForDataSavingLoading,'r')
+            dataset = pickle.load(fileObjectData)
+            print dataset
+        else:
+            # loop over all of the games
+            for i in range(numGamesForTraining):
+                # initialize a new game
+                board = Tic()
                 
-                # add the board configuration and resultant best-move to the training set
-                configs.append(board.getBoard())
-                player_move = determine(board, player)
-                decisions.append(player_move)
+                # loop until the game is complete
+                while not board.complete():
+                    player = 'X'
+                    
+                    # add the board configuration and resultant best-move to the training set
+                    configs.append(board.getBoard())
+                    player_move = determine(board, player)
+                    decisions.append(player_move)
+                    
+                    # makes sure the player move is valid
+                    if not player_move in board.available_moves():
+                        continue
+                    board.make_move(player_move, player)
+
+                    if board.complete():
+                        break
+                    
+                    # switch to the other player
+                    player = get_enemy(player)
+
+                    # add the board configuation and resultant best-move to the training set
+                    configs.append(board.getBoard())
+                    computer_move = determine(board, player)
+                    decisions.append(computer_move)
+
+                    board.make_move(computer_move, player)
                 
-                # makes sure the player move is valid
-                if not player_move in board.available_moves():
-                    continue
-                board.make_move(player_move, player)
+                #print "winner is", board.winner()
+        
+            # create a classification dataset from the input values
+            dataset = ClassificationDataSet(9, nb_classes=9)
+            for i in range(len(configs)):
+                dataset.appendLinked(configs[i], [decisions[i]])
+            dataset._convertToOneOfMany()
 
-                if board.complete():
-                    break
-                
-                # switch to the other player
-                player = get_enemy(player)
-
-                # add the board configuation and resultant best-move to the training set
-                configs.append(board.getBoard())
-                computer_move = determine(board, player)
-                decisions.append(computer_move)
-
-                board.make_move(computer_move, player)
-            
-            print "winner is", board.winner()
-            
-        # create a classification dataset from the input values
-        dataset = ClassificationDataSet(9, nb_classes=9)
-        for i in range(len(configs)):
-            dataset.appendLinked(configs[i], [decisions[i]])
-        dataset._convertToOneOfMany()
+            fileObjectData = open(fileNameForDataSavingLoading, 'w')
+            pickle.dump(dataset, fileObjectData)
+            fileObjectData.close()
 
         # use backpropogation to train the neural network
         trainer = BackpropTrainer( fnn, dataset=dataset, momentum=0.1, verbose=True, weightdecay=0.01)
@@ -240,27 +250,16 @@ if __name__ == "__main__":
         pickle.dump(fnn, fileObject)
         fileObject.close()
 
-    computer_moves = []
+    return fnn
 
-
-    # this loop is just for testing purposes - just to see how different the learned network generally behaves
-    print "Determining the predicted moves and the computer's moves..."
-    for config in configs:
-        config = from_feature_vector(config)
-        board = Tic(squares = config)
-
-        player = 'O'
-
-        computer_move = determine(board, player)
-        computer_moves.append(computer_move)
-
+def testNetwork(numGames, fnn):
     configs = []
     decisions = []
-    
+
     # In this stage, we play the ideal solver against the learned neural network, and count the number of draws, wins and losses
     # note, it is not possible to win against the computer - so really we are trying to find the number of draws
     winners = []
-    numGames = 100
+    #numGames = 100
     for i in range(numGames):
         board = Tic()
         
@@ -304,7 +303,7 @@ if __name__ == "__main__":
 
         print "winner is", board.winner()
         winners.append(board.winner())
-    
+
     # calculate the number of wins for each
     Xwins = [win for win in winners if win == 'X']
     numXwins = len(Xwins)
@@ -314,7 +313,11 @@ if __name__ == "__main__":
     print "Number of times Neural Net won is ", numXwins, " out of ", numGames
     print "Number of times Optimal Solver won is ", numOwins, " out of ", numGames
     print "Number of Draws is ", numGames - numXwins - numOwins, " out of ", numGames
+    return numGames - numXwins - numOwins
 
+
+fnn = trainNetwork(inputlayers, inputargs)
+numDraws = testNetwork(100, fnn)
 
 
 

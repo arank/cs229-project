@@ -11,6 +11,9 @@ from pybrain.structure.modules   import SoftmaxLayer
 from pybrain.structure.modules   import TanhLayer
 import cPickle as pickle
 
+from multiprocessing import Pool
+import multiprocessing
+
 numGamesTraining = 1000
 numEpochs = 5
 
@@ -205,9 +208,11 @@ def createSimilarConfigurations(configs, numWanted):
 
 
 
-def trainNetwork(layers, args, numGamesForTraining, numEpochsForTraining):
+def trainNetwork(inputlayers, args, numGamesForTraining, numEpochsForTraining):
     configs = []
     decisions = []
+    layers = filter(lambda a: a != 0, inputlayers)
+    #print layers
     
     # create a Feed-Forward Neural Network
     fnn = buildNetwork(*layers, **args)
@@ -224,7 +229,7 @@ def trainNetwork(layers, args, numGamesForTraining, numEpochsForTraining):
         if (usePriorDataset):
             fileObjectData = open(fileNameForDataSavingLoading,'r')
             dataset = pickle.load(fileObjectData)
-            print dataset
+            #print dataset
         else:
             # loop over all of the games
             for i in range(numGamesForTraining):
@@ -271,9 +276,10 @@ def trainNetwork(layers, args, numGamesForTraining, numEpochsForTraining):
             fileObjectData.close()
 
         # use backpropogation to train the neural network
-        trainer = BackpropTrainer( fnn, dataset=dataset, momentum=0.1, verbose=True, weightdecay=0.01)
+        trainer = BackpropTrainer( fnn, dataset=dataset, momentum=0.1, verbose=False, weightdecay=0.01)
         for i in range(numEpochsForTraining):
             trainer.trainEpochs(1)
+
         # print predictions on the training data- not actually used for anything
         prediction_moves = trainer.testOnClassData()
 
@@ -315,7 +321,7 @@ def testNetwork(numGames, fnn):
                 attempt += 1
                 player_move = order_of_attempts[attempt]
 
-            print player_move
+            #print player_move
 
             board.make_move(player_move, player)
             #board.show()
@@ -333,7 +339,7 @@ def testNetwork(numGames, fnn):
 
             board.make_move(computer_move, player)
 
-        print "winner is", board.winner()
+        #print "winner is", board.winner()
         winners.append(board.winner())
 
     # calculate the number of wins for each
@@ -342,16 +348,37 @@ def testNetwork(numGames, fnn):
     Owins = [win for win in winners if win == 'O']
     numOwins = len(Owins)
 
-    print "Number of times Neural Net won is ", numXwins, " out of ", numGames
-    print "Number of times Optimal Solver won is ", numOwins, " out of ", numGames
-    print "Number of Draws is ", numGames - numXwins - numOwins, " out of ", numGames
+    #print "Number of times Neural Net won is ", numXwins, " out of ", numGames
+    #print "Number of times Optimal Solver won is ", numOwins, " out of ", numGames
+    #print "Number of Draws is ", numGames - numXwins - numOwins, " out of ", numGames
     return numGames - numXwins - numOwins
 
+def trainAndTest(inputlayers, args, numGamesForTraining, numEpochsForTraining, numGames):
+    fnn = trainNetwork(inputlayers, args, numGamesForTraining, numEpochsForTraining)
+    numDraws = testNetwork(numGames, fnn)
+    return numDraws
 
-print createSimilarConfigurations([[9,10,5,9],[9,16,14,9],[9,3,9]], 10)
+results = []
+initialconfigs = [[9,0,0,9], [9,10,5,9],[9,16,14,9],[9,3,9], [9,6,0,9], [9,20,5,9], [9,9,9,9], [9,9,9], [9,5,9], [9,20,20,9]]
+tasks = []
+for config in initialconfigs:
+    tasks.append((config, inputargs, numGamesTraining, numEpochs, 100))
 
-fnn = trainNetwork(inputlayers, inputargs, numGamesTraining, numEpochs)
-numDraws = testNetwork(100, fnn)
+print "The computer has this many cores: ", multiprocessing.cpu_count()
+p = Pool(multiprocessing.cpu_count())
+
+res = [p.apply_async( trainAndTest, t ) for t in tasks]
+draws = [r.get() for r in res]
+print draws
+print res
+
+#p.map(trainNetwork, )
+#print createSimilarConfigurations([[9,10,5,9],[9,16,14,9],[9,3,9]], 10)
+#for config in initialconfigs:
+#    fnn = trainNetwork(config, inputargs, numGamesTraining, numEpochs)
+#    numDraws = testNetwork(100, fnn)
+#    results.append(numDraws)
+#print results
 
 
 

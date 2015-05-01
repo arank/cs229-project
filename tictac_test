@@ -11,15 +11,19 @@ from pybrain.structure.modules   import SoftmaxLayer
 from pybrain.structure.modules   import TanhLayer
 import cPickle as pickle
 
-numGamesForTraining = 1000
-numEpochsForTraining = 5
+numGamesTraining = 1000
+numEpochs = 5
 
 # if usePriorNetwork = False, then the newly trained network will be saved in fileNameForNetworkSavingLoading
 # if usePriorNetwor = True, then the network will be loaded from fileNameForNetworkSavingLoading
 usePriorNetwork = False
 usePriorDataset = True
+
+# this can be used to save/load either the full trained network or just the dataset 
+# to make the training phase faster
 fileNameForNetworkSavingLoading = "trainednetwork_9_9"
 fileNameForDataSavingLoading = "input_dataset_1000games"
+
 # specify the setup of neurons per layer, and other arguments for the neural network
 inputlayers = [9, 30, 50, 30, 9]
 inputargs = {'outclass': SoftmaxLayer, 'hiddenclass': TanhLayer}
@@ -173,7 +177,7 @@ def from_feature_vector(moves):
             
     return vec
 
-def trainNetwork(layers, args):
+def trainNetwork(layers, args, numGamesForTraining, numEpochsForTraining):
     configs = []
     decisions = []
     
@@ -316,7 +320,7 @@ def testNetwork(numGames, fnn):
     return numGames - numXwins - numOwins
 
 
-fnn = trainNetwork(inputlayers, inputargs)
+fnn = trainNetwork(inputlayers, inputargs, numGamesTraining, numEpochs)
 numDraws = testNetwork(100, fnn)
 
 

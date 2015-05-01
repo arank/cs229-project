@@ -177,6 +177,34 @@ def from_feature_vector(moves):
             
     return vec
 
+def mutate(config):
+    newconf = []
+    newconf.append(config[0])
+    for elem in config[1:-1]:
+        flip = np.random.binomial(1, .9)
+        if flip == 0:
+            newconf.append(np.random.randint(0, 50))
+        else:
+            newconf.append(elem)
+    newconf.append(config[-1])
+    return newconf
+
+
+def createSimilarConfigurations(configs, numWanted):
+    numconfigs = len(configs)
+
+    # start the new configurations with the old ones
+    newconfigs = configs
+
+    # for the number that are left, repeatedly pick a random configuration and mutate it
+    for i in range(numWanted - numconfigs):
+        config = configs[np.random.randint(0, numconfigs)]
+        newconfigs.append(mutate(config))
+
+    return newconfigs
+
+
+
 def trainNetwork(layers, args, numGamesForTraining, numEpochsForTraining):
     configs = []
     decisions = []
@@ -319,6 +347,8 @@ def testNetwork(numGames, fnn):
     print "Number of Draws is ", numGames - numXwins - numOwins, " out of ", numGames
     return numGames - numXwins - numOwins
 
+
+print createSimilarConfigurations([[9,10,5,9],[9,16,14,9],[9,3,9]], 10)
 
 fnn = trainNetwork(inputlayers, inputargs, numGamesTraining, numEpochs)
 numDraws = testNetwork(100, fnn)

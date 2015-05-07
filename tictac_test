@@ -28,7 +28,7 @@ fileNameForNetworkSavingLoading = "trainednetwork_9_9"
 fileNameForDataSavingLoading = "input_dataset_1000games"
 
 # specify the setup of neurons per layer, and other arguments for the neural network
-inputlayers = [9, 30, 50, 30, 9]
+#inputlayers = [9, 30, 50, 30, 9]
 inputargs = {'outclass': SoftmaxLayer, 'hiddenclass': TanhLayer}
 
 class Tic(object):
@@ -376,6 +376,7 @@ for i in range(10):
     res = [p.apply_async( trainAndTest, t ) for t in tasks]
     draws = np.array([r.get() for r in res])
     print "Results are", draws
+    print "Average is",  float(sum(draws))/len(draws)
     initialconfigs = initialconfigs[draws.argsort()[-15:]]
 #print res
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # tic-tac-toe optimal solver implementation from http://cwoebker.com/posts/tic-tac-toe
-
+# import whetlab
 import numpy as np
 import random
 from pybrain.datasets            import ClassificationDataSet
@@ -353,6 +353,16 @@ def testNetwork(numGames, fnn):
     #print "Number of times Optimal Solver won is ", numOwins, " out of ", numGames
     #print "Number of Draws is ", numGames - numXwins - numOwins, " out of ", numGames
     return numGames - numXwins - numOwins
+
+# def hyperTuning():
+# 	hyperParams = {'first': 4,'second':17,'third':0}
+# 	scientist = whetlab.Experiment(name='ticTacNet')
+# 	for i in range(10):
+# 	    config = [9, hyperParams['first'], hyperParams['second'], hyperParams['third'], 9]
+# 	    res = trainAndTest(config, inputargs, numGamesTraining, numEpochs, 100)
+#		print "Result is", res
+# 	    scientist.update(hyperParams, res)
+# 	    hyperParams = scientist.suggest()
 
 def trainAndTest(inputlayers, args, numGamesForTraining, numEpochsForTraining, numGames):
     #print inputlayers, args, numGamesForTraining, numEpochsForTraining, numGames

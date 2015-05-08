@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # tic-tac-toe optimal solver implementation from http://cwoebker.com/posts/tic-tac-toe
-# import whetlab
+import whetlab
 import numpy as np
 import random
 from pybrain.datasets            import ClassificationDataSet
@@ -366,15 +366,28 @@ def testNetwork(numGames, fnn):
     #print "Number of Draws is ", numGames - numXwins - numOwins, " out of ", numGames
     return numGames - numXwins - numOwins
 
-# def hyperTuning():
-# 	hyperParams = {'first': 4,'second':17,'third':0}
-# 	scientist = whetlab.Experiment(name='ticTacNet')
-# 	for i in range(10):
-# 	    config = [9, hyperParams['first'], hyperParams['second'], hyperParams['third'], 9]
-# 	    res = trainAndTest(config, inputargs, numGamesTraining, numEpochs, 100)
-#		print "Result is", res
-# 	    scientist.update(hyperParams, res)
-# 	    hyperParams = scientist.suggest()
+# Uses the whetlab code to hypertune for 10 generations
+def hyperTuning():
+    print "Starting hypertuning..."
+    hyperParams = {'first': 4,'second':17,'third':0}
+    scientist = whetlab.Experiment(name='tictacNet',  access_token='67572e03-9fbf-47db-aef3-866ac4f85625')
+    for i in range(10):
+        config = [9, hyperParams['first'], hyperParams['second'], hyperParams['third'], 9]
+        res = trainAndTest(config, inputargs, numGamesTraining, numEpochs, 100)
+        print "Result is", res
+
+        #  Get the software to give the best next guess for hyper parameters (based on all previous guesses)
+        print "Asking scientist for new params"
+        scientist.update(hyperParams, res)
+        hyperParams = scientist.suggest()
+        print "New suggested params are", hyperParams
+
+    # Find best result after all tuning is done 
+    hyperParams = scientist.best()
+    config = [9, hyperParams['first'], hyperParams['second'], hyperParams['third'], 9]
+    print "Final result is", trainAndTest(config, inputargs, numGamesTraining, numEpochs, 100)
+
+
 
 def trainAndTest(inputlayers, args, numGamesForTraining, numEpochsForTraining, numGames):
     #print inputlayers, args, numGamesForTraining, numEpochsForTraining, numGames
@@ -382,25 +395,27 @@ def trainAndTest(inputlayers, args, numGamesForTraining, numEpochsForTraining, n
     numDraws = testNetwork(numGames, fnn)
     return numDraws
 
-results = []
-initialconfigs = np.array([[9,4,17,0,9], [9,10,5,0,9],[9,16,7,14,9],[9,4,30,20,9], [9,6,0,20,9], [9,20,5,40,9], [9,5,7,2,9], [9,3,0,3,9], [9,5,0,0,9], [9,20,5,20,9]])
-p = Pool(multiprocessing.cpu_count())
-for i in range(10):
-    initialconfigs = createSimilarConfigurations(initialconfigs, 20)
-    print "Starting configuration: ", initialconfigs
-    tasks = []
-    for config in initialconfigs:
-        tasks.append((config, inputargs, numGamesTraining, numEpochs, 100))
+# results = []
+# initialconfigs = np.array([[9,4,17,0,9], [9,10,5,0,9],[9,16,7,14,9],[9,4,30,20,9], [9,6,0,20,9], [9,20,5,40,9], [9,5,7,2,9], [9,3,0,3,9], [9,5,0,0,9], [9,20,5,20,9]])
+# p = Pool(multiprocessing.cpu_count())
+# for i in range(10):
+#     initialconfigs = createSimilarConfigurations(initialconfigs, 20)
+#     print "Starting configuration: ", initialconfigs
+#     tasks = []
+#     for config in initialconfigs:
+#         tasks.append((config, inputargs, numGamesTraining, numEpochs, 100))
 
-    print "The computer has this many cores: ", multiprocessing.cpu_count()
-    #p = Pool(multiprocessing.cpu_count())
+#     print "The computer has this many cores: ", multiprocessing.cpu_count()
+#     #p = Pool(multiprocessing.cpu_count())
 
-    res = [p.apply_async( trainAndTest, t ) for t in tasks]
-    draws = np.array([r.get() for r in res])
-    print "Results are", draws
-    print "Average is",  float(sum(draws))/len(draws)
-    initialconfigs = initialconfigs[draws.argsort()[-15:]]
-#print res
+#     res = [p.apply_async( trainAndTest, t ) for t in tasks]
+#     draws = np.array([r.get() for r in res])
+#     print "Results are", draws
+#     print "Average is",  float(sum(draws))/len(draws)
+#     initialconfigs = initialconfigs[draws.argsort()[-15:]]
+
+hyperTuning()
+
 
 #p.map(trainNetwork, )
 #print createSimilarConfigurations([[9,10,5,9],[9,16,14,9],[9,3,9]], 10)

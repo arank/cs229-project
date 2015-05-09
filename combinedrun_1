@@ -1,0 +1,80 @@
+Starting hypertuning...
+INFO: this experiment currently has 2 jobs (results) that are pending.
+i =  0
+    Hypertuning results:  67
+    Evolution results
+        Results are [ 78  77 100  88 100  83  32  71 100  73  26 100 100 100  71  49  78 100
+ 100  71]
+        Average is 79.85
+Starting hypertuning...
+INFO: this experiment currently has 3 jobs (results) that are pending.
+i =  1
+    Hypertuning results:  100
+    Evolution results
+        Results are [ 85  26  73  51  80  76 100 100 100 100  47 100  75 100 100  67  59 100
+  68 100]
+        Average is 80.35
+Starting hypertuning...
+INFO: this experiment currently has 3 jobs (results) that are pending.
+i =  2
+    Hypertuning results:  0
+    Evolution results
+        Results are [100 100  73  72  19  45  80  77 100  26 100 100  72  78  72  33  75 100
+  23  78]
+        Average is 71.15
+Starting hypertuning...
+INFO: this experiment currently has 3 jobs (results) that are pending.
+i =  3
+    Hypertuning results:  100
+    Evolution results
+        Results are [100 100  47  56 100  78 100  58  82  77  80  68  45 100  77 100 100  76
+ 100  52]
+        Average is 79.8
+Starting hypertuning...
+INFO: this experiment currently has 3 jobs (results) that are pending.
+i =  4
+    Hypertuning results:  56
+    Evolution results
+        Results are [100 100 100  79 100 100 100 100  70  68 100 100  68 100  77 100 100  67
+ 100 100]
+        Average is 91.45
+Starting hypertuning...
+INFO: this experiment currently has 3 jobs (results) that are pending.
+i =  5
+    Hypertuning results:  77
+    Evolution results
+        Results are [100 100  48 100 100 100  71 100 100 100  19  52  76  23  79  43 100  80
+  51  74]
+        Average is 75.8
+Starting hypertuning...
+INFO: this experiment currently has 3 jobs (results) that are pending.
+i =  6
+    Hypertuning results:  100
+    Evolution results
+        Results are [100  53  77 100 100 100 100  77 100 100  74  82  67  79 100 100 100  57
+  72  82]
+        Average is 86.0
+Starting hypertuning...
+INFO: this experiment currently has 3 jobs (results) that are pending.
+i =  7
+    Hypertuning results:  100
+    Evolution results
+        Results are [ 69 100 100 100  78 100  77 100 100 100 100  74  73  45  71 100  76 100
+ 100 100]
+        Average is 88.15
+Starting hypertuning...
+INFO: this experiment currently has 3 jobs (results) that are pending.
+i =  8
+    Hypertuning results:  75
+    Evolution results
+        Results are [ 74  59  77 100 100 100 100 100  79  71  76 100 100 100 100 100  72 100
+ 100  47]
+        Average is 87.75
+Starting hypertuning...
+INFO: this experiment currently has 3 jobs (results) that are pending.
+i =  9
+    Hypertuning results:  72
+    Evolution results
+        Results are [ 75  73 100  50 100  75  17 100 100 100 100  79  75 100 100 100 100 100
+ 100  76]
+        Average is 86.0

@@ -1,5 +1,13 @@
 #!/usr/bin/env python
+#############
+# Ankit Gupta and Aran Khanna
+# CS 229r - Final Project
+# 
 # tic-tac-toe optimal solver implementation from http://cwoebker.com/posts/tic-tac-toe
+# Implements evolutionary search and hyperparameter optimzation
+#############################
+
+
 import whetlab
 import numpy as np
 import random
@@ -24,8 +32,8 @@ usePriorDataset = True
 
 # this can be used to save/load either the full trained network or just the dataset 
 # to make the training phase faster
-fileNameForNetworkSavingLoading = "trainednetwork_9_9"
-fileNameForDataSavingLoading = "input_dataset_1000games"
+fileNameForNetworkSavingLoading = "trainednetwork_9_9" # Note, this isn't used anymore
+fileNameForDataSavingLoading = "input_dataset_1000games" # This is the dataset from training 1000 games
 
 # specify the setup of neurons per layer, and other arguments for the neural network
 #inputlayers = [9, 30, 50, 30, 9]
@@ -45,6 +53,7 @@ class Tic(object):
         else:
             self.squares = squares
 
+    # returns the board state in a convenient form for training
     def getBoard(self):
         newboard = []
         for x in self.squares:
@@ -55,6 +64,8 @@ class Tic(object):
             else:
                 newboard.append(0)
         return newboard
+
+    # prints the neural network to the console
     def show(self):
         for element in [self.squares[i:i + 3] for i in range(0, len(self.squares), 3)]:
             print element
@@ -84,6 +95,7 @@ class Tic(object):
     def tied(self):
         return self.complete() == True and self.winner() is None
 
+    # determines who won
     def winner(self):
         for player in ('X', 'O'):
             positions = self.get_squares(player)
@@ -100,6 +112,7 @@ class Tic(object):
         """squares that belong to a player"""
         return [k for k, v in enumerate(self.squares) if v == player]
 
+    # makes a move
     def make_move(self, position, player):
         """place on square on the board"""
         self.squares[position] = player
@@ -131,7 +144,7 @@ class Tic(object):
         else:
             return beta
 
-
+# determine move to make
 def determine(board, player):
     a = -2
     choices = []
@@ -150,36 +163,13 @@ def determine(board, player):
     #print choices
     return random.choice(choices)
 
-
+# determine who the opposite player is
 def get_enemy(player):
     if player == 'X':
         return 'O'
     return 'X'
 
-def to_feature_vector(board):
-    vec = []
-    for move in board.squares:
-        if move is None:
-            vec.append(0)
-        elif move == 'X':
-            vec.append(1)
-        elif move == 'O':
-            vec.append(2)
-            
-    return vec
-
-def from_feature_vector(moves):
-    vec = []
-    for move in moves:
-        if move == 0:
-            vec.append(None)
-        elif move == 1:
-            vec.append('X')
-        elif move == -1:
-            vec.append('O')
-            
-    return vec
-
+# randomly mutate the genes (layer configurations)
 def mutate(config):
     newconf = []
     newconf.append(config[0])
@@ -192,7 +182,7 @@ def mutate(config):
     newconf.append(config[-1])
     return newconf
 
-
+# combine the genetic info of two configurations
 def crossOver(config1, config2):
     length = len(config1)
     newconfig = []
@@ -204,6 +194,7 @@ def crossOver(config1, config2):
             newconfig.append(config2[i])
     return mutate(newconfig)
 
+# extend the given configurations so that there are a total of numWanted
 def createSimilarConfigurations(configs, numWanted):
     configs = configs.tolist()
     numconfigs = len(configs)
@@ -219,8 +210,7 @@ def createSimilarConfigurations(configs, numWanted):
 
     return np.array(newconfigs)
 
-
-
+# train a network given the parameters of the network
 def trainNetwork(inputlayers, args, numGamesForTraining, numEpochsForTraining):
     configs = []
     decisions = []
@@ -303,6 +293,7 @@ def trainNetwork(inputlayers, args, numGamesForTraining, numEpochsForTraining):
 
     return fnn
 
+# test the network by playing it against the computer
 def testNetwork(numGames, fnn):
     configs = []
     decisions = []
@@ -366,7 +357,7 @@ def testNetwork(numGames, fnn):
     #print "Number of Draws is ", numGames - numXwins - numOwins, " out of ", numGames
     return numGames - numXwins - numOwins
 
-# Uses the whetlab code to hypertune for 10 generations
+# Uses the whetlab code to hypertune for inp generations
 def hyperTuning(inp, hyperParams):
     print "Starting hypertuning..."
     scientist = whetlab.Experiment(name='tictacNet',  access_token='67572e03-9fbf-47db-aef3-866ac4f85625')
@@ -387,7 +378,7 @@ def hyperTuning(inp, hyperParams):
     #print "Final result is", trainAndTest(config, inputargs, numGamesTraining, numEpochs, 100)
     return hyperParams, res
 
-
+# run both the training and testing of the network
 def trainAndTest(inputlayers, args, numGamesForTraining, numEpochsForTraining, numGames):
     #print inputlayers, args, numGamesForTraining, numEpochsForTraining, numGames
     fnn = trainNetwork(inputlayers, args, numGamesForTraining, numEpochsForTraining)
@@ -397,20 +388,23 @@ def trainAndTest(inputlayers, args, numGamesForTraining, numEpochsForTraining, n
 results = []
 initialconfigs = np.array([[9,4,17,0,9], [9,10,5,0,9],[9,16,7,14,9],[9,4,30,20,9], [9,6,0,20,9], [9,20,5,40,9], [9,5,7,2,9], [9,3,0,3,9], [9,5,0,0,9], [9,20,5,20,9]])
 hyperParams = {'first': 4,'second':17,'third':0}
+
 p = Pool(multiprocessing.cpu_count())
+
+# run 10 stages of each algoritm
 for i in range(10):
     initialconfigs = createSimilarConfigurations(initialconfigs, 20)
-    #print "Starting configuration: ", initialconfigs
+
+    # create tasks to be given to the Pool
     tasks = []
     for config in initialconfigs:
         tasks.append((config, inputargs, numGamesTraining, numEpochs, 100))
-    #print "The computer has this many cores: ", multiprocessing.cpu_count()
-    #p = Pool(multiprocessing.cpu_count())
+
     
     # start the tasks
     res = [p.apply_async( trainAndTest, t ) for t in tasks]
     
-    # meanwhile, to a hypertuning step
+    # meanwhile, do a hypertuning step
     hyperParams, reshyper =  hyperTuning(1, hyperParams)
     print "i = ", i
     print "    Hypertuning results: ", reshyper
@@ -421,13 +415,6 @@ for i in range(10):
     initialconfigs = initialconfigs[draws.argsort()[-15:]]
 
 
-#p.map(trainNetwork, )
-#print createSimilarConfigurations([[9,10,5,9],[9,16,14,9],[9,3,9]], 10)
-#for config in initialconfigs:
-#    fnn = trainNetwork(config, inputargs, numGamesTraining, numEpochs)
-#    numDraws = testNetwork(100, fnn)
-#    results.append(numDraws)
-#print results
 
 
 

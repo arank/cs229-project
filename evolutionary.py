@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+#############
+# Ankit Gupta and Aran Khanna
+# CS 229r - Final Project
+# 
+# tic-tac-toe optimal solver implementation from http://cwoebker.com/posts/tic-tac-toe
+# Implements evolutionary search - this was used for testing and debugging
+#############################
+
 # tic-tac-toe optimal solver implementation from http://cwoebker.com/posts/tic-tac-toe
 
 import numpy as np

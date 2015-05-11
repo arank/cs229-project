@@ -1,15 +1,8 @@
-# cs229-project
+# cs229-project - Ankit Gupta and Aran Khanna
 
-Implement Tic-Tac-Toe (TTT), check if state is winning state, implement 2 player moves
+# Dependencies
+You need PyBrain, python 2.7, cPickle
 
-Possibly use pre-hashed Ranking of TTT states
+# Usage
+Run 'python tictac_test.py' to see the results
 
-Generate training set from series of games.
-
-Create optimally playing AI
-
-Train Nerual net (out of the box)
-
-Train Evolvability algorithm
-
-Run both against optimal AI and record results

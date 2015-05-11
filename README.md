@@ -10,7 +10,7 @@ Python 2.7, PyBrain, cPickle
 
 # Usage
 Run 
-``
+```
 python tictac_test.py
 ```
  to see the results
